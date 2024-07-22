@@ -8,9 +8,8 @@ import speech_recognition as sr
 from gtts import gTTS
 import parselmouth
 from playsound import playsound 
+import inquirer
 
-load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
 
 def vocalize_reponse(text, audio_file):
     generated_audio = gTTS(text=text, lang='en') # Generate text to speech then save to file
@@ -65,8 +64,7 @@ def simulate_mouth(timings):
             print("Simulate Close")
             word_number = word_number+1
 
-
-def main(): 
+def voice_interaction(api_key):
     recognizer = sr.Recognizer()
     recognizer.dynamic_energy_threshold = True # Adjust for ambient noise in environment
 
@@ -84,6 +82,39 @@ def main():
         
     except sr.RequestError as error:
         print(f"Could not request results from Whisper API; {error}")
+
+def text_interaction(api_key):
+    client = OpenAI(api_key=api_key)
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Who won the world series in 2020?"},
+            {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
+            {"role": "user", "content": "Where was it played?"}
+        ]
+    )
+
+    print(response.choices[0].message.content)
+
+def main():
+    load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    questions = [
+        inquirer.List('mode',
+                message="Select interaction mode:",
+                choices=['Voice', 'Text'],
+            ),
+    ]
+
+    mode = inquirer.prompt(questions)['mode']
+    
+    if mode == 'Voice':
+        voice_interaction(api_key)
+    elif mode == 'Text':
+        text_interaction(api_key)
 
 
 if __name__ == "__main__":

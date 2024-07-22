@@ -5,3 +5,4 @@ gTTS==2.5.2
 praat-parselmouth==0.4.3
 playsound==1.2.2
 python-dotenv==1.0.1
+inquirer==3.3.0
