@@ -76,27 +76,29 @@ def voice_interaction(api_key):
     print("Listening Complete!")
 
     try:
+        # Repeat back what was heard as a test
         transcription = recognizer.recognize_whisper_api(audio, api_key=api_key)
-        vocalize_reponse(transcription, "src/response/speech.mp3")
-        play_audio_with_mouth_sync("src/response/speech.mp3")
+        vocalize_reponse(transcription, "src/speech.mp3")
+        play_audio_with_mouth_sync("src/speech.mp3")
         
     except sr.RequestError as error:
-        print(f"Could not request results from Whisper API; {error}")
+        print(f"Could not request results from Whisper API: {error}")
 
 def text_interaction(api_key):
     client = OpenAI(api_key=api_key)
+    message_history = [{"role": "system", "content": "You are a helpful assistant."}]
+    print("Beginning Conversation: ")
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Who won the world series in 2020?"},
-            {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
-            {"role": "user", "content": "Where was it played?"}
-        ]
-    )
-
-    print(response.choices[0].message.content)
+    while True:
+        query = input("User: ")
+        message_history.append({"role": "user", "content": query})
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=message_history
+        )
+        response_message = response.choices[0].message.content
+        print(f"\nAssitant: {response_message}\n")
+        message_history.append({"role": "assistant", "content": response_message})
 
 def main():
     load_dotenv()
